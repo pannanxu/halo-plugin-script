@@ -271,6 +271,57 @@ class JavaScriptEngineContextTest {
     }
 
     @Test
+    void testEngineering() {
+        JavaScriptEngineContext context = new JavaScriptEngineContext(Context.newBuilder("js")
+            .allowIO(IOAccess.ALL)
+            .allowHostAccess(HostAccess.ALL)
+            .allowHostClassLoading(true)
+            .allowHostClassLookup(s -> true)
+            .allowAllAccess(true)
+            .option("js.esm-eval-returns-exports", "true")
+            .option("engine.WarnInterpreterOnly", "false")
+            .build());
+        
+        String commonsCode = """
+            // Reactor
+            export const Mono = Java.type('reactor.core.publisher.Mono');
+                        
+            // Halo Api
+            export const PostContentService = Java.type('run.halo.app.content.PostContentService');
+            export const ExcerptGenerator = Java.type('run.halo.app.content.ExcerptGenerator');
+            export const PatchUtils = Java.type('run.halo.app.content.PatchUtils');
+            export const CommentSubject = Java.type('run.halo.app.content.comment.CommentSubject');
+            export const SearchService = Java.extend(Java.type('run.halo.app.search.SearchService'));
+                        
+            // Engine Api
+            """;
+        // language=JavaScript
+        Value value = context.evalCode(commonsCode + """
+            const o = (e) => {
+              console.log("register", e);
+            }, t = () => new SearchService({
+              search: (r) => {
+                o("hello"), console.log(r);
+                debugger;
+                return Mono.just({
+                  keyword: "test"
+                });
+              }
+            });
+            export {
+              t as createImplSearchService
+            };
+            
+            """);
+        Value searchService = context.invokeMember(value, "createImplSearchService");
+        SearchOption option = new SearchOption();
+        option.setKeyword("Debugger测试");
+        System.out.println(
+            searchService.as(SearchService.class).search(option).block());
+
+    }
+
+    @Test
     void testPluginImportCommons() throws URISyntaxException {
         String filePath = "plugin1/main.mjs";
         String pluginPath = this.getClass().getClassLoader().getResource(filePath).getFile();
