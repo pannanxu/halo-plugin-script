@@ -226,6 +226,51 @@ class JavaScriptEngineContextTest {
     }
 
     @Test
+    void testDebugger() {
+        String port = "4242";
+        String path = java.util.UUID.randomUUID().toString();
+        String hostAdress = "localhost";
+        String url = String.format("chrome-devtools://devtools/bundled/js_app.html?ws=%s:%s/%s",
+            hostAdress, port, path);
+
+        JavaScriptEngineContext context = new JavaScriptEngineContext(Context.newBuilder("js")
+            .allowIO(IOAccess.ALL)
+            .allowHostAccess(HostAccess.ALL)
+            .allowHostClassLoading(true)
+            .allowHostClassLookup(s -> true)
+            .allowAllAccess(true)
+            .option("js.esm-eval-returns-exports", "true")
+            .option("engine.WarnInterpreterOnly", "false")
+            // debug
+            .option("inspect", port)
+            .option("inspect.Path", path)
+            .build());
+        // language=JavaScript
+        Value value = context.evalCode("""
+            const Mono = Java.type('reactor.core.publisher.Mono');
+            const SearchService = Java.extend(Java.type('run.halo.app.search.SearchService'));
+            export const createImplSearchService =  () => {
+                const impl = new SearchService({
+                    search: (option) => {
+                        console.log(option)
+                        debugger
+                        return Mono.just({
+                            keyword: 'test'
+                        })
+                    }
+                })
+                return impl
+            }
+            """);
+        Value searchService = context.invokeMember(value, "createImplSearchService");
+        SearchOption option = new SearchOption();
+        option.setKeyword("Debugger测试");
+        System.out.println(
+            searchService.as(SearchService.class).search(option).block());
+
+    }
+
+    @Test
     void testPluginImportCommons() throws URISyntaxException {
         String filePath = "plugin1/main.mjs";
         String pluginPath = this.getClass().getClassLoader().getResource(filePath).getFile();

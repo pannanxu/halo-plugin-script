@@ -19,6 +19,8 @@ dependencies {
     implementation 'org.graalvm.js:js-community:24.1.1'
     implementation 'org.graalvm.polyglot:polyglot:24.1.1'
     implementation 'org.graalvm.js:js-scriptengine:24.1.1'
+    // debugger
+    runtimeOnly 'org.graalvm.tools:chromeinspector:23.0.6'
     
     
     implementation platform('run.halo.tools.platform:plugin:2.20.0-SNAPSHOT')
