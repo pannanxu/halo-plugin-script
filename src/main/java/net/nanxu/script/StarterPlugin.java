@@ -1,4 +1,4 @@
-package run.halo.starter;
+package net.nanxu.script;
 
 import org.springframework.stereotype.Component;
 import run.halo.app.plugin.BasePlugin;

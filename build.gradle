@@ -16,11 +16,17 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.graalvm.js:js-community:24.1.1'
+    implementation 'org.graalvm.polyglot:polyglot:24.1.1'
+    implementation 'org.graalvm.js:js-scriptengine:24.1.1'
+    
+    
     implementation platform('run.halo.tools.platform:plugin:2.20.0-SNAPSHOT')
     compileOnly 'run.halo.app:api'
 
     testImplementation 'run.halo.app:api'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webflux'
 }
 
 test {
@@ -44,12 +50,12 @@ tasks.register('installDepsForUI', PnpmTask) {
     args = ['install']
 }
 
-build {
-    // build frontend before build
-    tasks.named('compileJava').configure {
-        dependsOn('buildFrontend')
-    }
-}
+//build {
+//    // build frontend before build
+//    tasks.named('compileJava').configure {
+//        dependsOn('buildFrontend')
+//    }
+//}
 
 halo {
     version = '2.20'
