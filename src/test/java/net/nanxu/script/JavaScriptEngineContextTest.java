@@ -19,6 +19,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import run.halo.app.core.extension.content.Post;
@@ -30,6 +32,7 @@ import run.halo.app.search.SearchService;
 @ExtendWith(MockitoExtension.class)
 class JavaScriptEngineContextTest {
 
+    private static final Logger log = LoggerFactory.getLogger(JavaScriptEngineContextTest.class);
     @Mock
     ReactiveExtensionClient client;
 
@@ -281,7 +284,7 @@ class JavaScriptEngineContextTest {
             .option("js.esm-eval-returns-exports", "true")
             .option("engine.WarnInterpreterOnly", "false")
             .build());
-        
+
         String commonsCode = """
             // Reactor
             export const Mono = Java.type('reactor.core.publisher.Mono');
@@ -311,7 +314,6 @@ class JavaScriptEngineContextTest {
             export {
               t as createImplSearchService
             };
-            
             """);
         Value searchService = context.invokeMember(value, "createImplSearchService");
         SearchOption option = new SearchOption();
@@ -319,6 +321,30 @@ class JavaScriptEngineContextTest {
         System.out.println(
             searchService.as(SearchService.class).search(option).block());
 
+    }
+
+    @Test
+    void testAxios() throws InterruptedException {
+        JavaScriptEngineContext context = new JavaScriptEngineContext(Context.newBuilder("js")
+            .allowIO(IOAccess.ALL)
+            .allowHostAccess(HostAccess.ALL)
+            .allowHostClassLoading(true)
+            .allowHostClassLookup(s -> true)
+            .allowAllAccess(true)
+            .option("js.esm-eval-returns-exports", "true")
+            .option("engine.WarnInterpreterOnly", "false")
+            // .option("js.v8-compat", "true")
+            .build());
+
+        context.addMember("request", new AxiosRequestAdapter());
+        Source source = context.createSourcePath(getFile("axios-lib-test.js"));
+        // language=JavaScript
+        Value value = context.eval(source);
+        Value fetch = context.invokeMember(value, "fetcherBaidu");
+
+        JsPromise.of(fetch).then(System.out::println);
+
+        Thread.sleep(1000);
     }
 
     @Test
@@ -375,7 +401,7 @@ class JavaScriptEngineContextTest {
             System.out.println("getName...");
             return Mono.defer(() -> {
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -397,5 +423,9 @@ class JavaScriptEngineContextTest {
         public Object parse(String json) {
             return JsonUtils.jsonToObject(json, Object.class);
         }
+    }
+
+    String getFile(String file) {
+        return this.getClass().getClassLoader().getResource(file).getFile();
     }
 }

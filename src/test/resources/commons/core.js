@@ -9,3 +9,14 @@ export const CommentSubject = Java.type('run.halo.app.content.comment.CommentSub
 export const SearchService = Java.extend(Java.type('run.halo.app.search.SearchService'));
 
 // Engine Api
+
+// const Core = {
+//     Mono,
+//     PostContentService,
+//     ExcerptGenerator,
+//     PatchUtils,
+//     CommentSubject,
+//     SearchService,
+// }
+//
+// export default Core;

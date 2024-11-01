@@ -1,3 +1,4 @@
+
 declare global {
 
     export class Mono<T = any> {
@@ -9,7 +10,7 @@ declare global {
         constructor(_config: SearchServiceConfig)
 
     }
-    
+
     export interface SearchOption {
         // 根据实际需要添加属性
         [key: string]: any;

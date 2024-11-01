@@ -1,38 +1,24 @@
 package net.nanxu.script;
 
+import java.util.concurrent.atomic.AtomicReference;
 import net.nanxu.script.js.JavaScriptEngineContext;
 import net.nanxu.script.js.JsPromise;
 import org.graalvm.polyglot.Value;
-import org.springframework.stereotype.Component;
-import run.halo.app.plugin.BasePlugin;
-import run.halo.app.plugin.PluginContext;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * <p>Plugin main class to manage the lifecycle of the plugin.</p>
- * <p>This class must be public and have a public constructor.</p>
- * <p>Only one main class extending {@link BasePlugin} is allowed per plugin.</p>
+ * TestController.
  *
- * @author guqing
- * @since 1.0.0
- */
-@Component
-public class StarterPlugin extends BasePlugin {
+ * @author: P
+ **/
+@RestController
+@RequestMapping("/api/js")
+public class TestController {
 
-    public StarterPlugin(PluginContext pluginContext) {
-        super(pluginContext);
-    }
-
-    @Override
-    public void start() {
-        System.out.println("插件启动成功！");
-    }
-
-    @Override
-    public void stop() {
-        System.out.println("插件停止！");
-    }
-
-    public static void main(String[] args) {
+    @GetMapping("/run")
+    public String test() {
         JavaScriptEngineContext context = new JavaScriptEngineContext();
         // language=JavaScript
         Value value = context.evalCode("""
@@ -50,13 +36,17 @@ public class StarterPlugin extends BasePlugin {
 
         // https://stackoverflow.com/questions/78961435/how-to-wait-using-graalvm-in-java-in-js-method-in-a-api-call
         Value started = context.invokeMember(value, "start", "hello");
+        AtomicReference<String> reference = new AtomicReference<>();
         JsPromise.of(started).then(result -> {
             System.out.println("started then: " + result);
+            reference.set(result.toString());
         });
 
         Value stopped = context.invokeMember(value, "end", "world");
         JsPromise.of(stopped).then(result -> {
             System.out.println("stopped then: " + result);
         });
+
+        return "Hello World" + reference.get();
     }
 }

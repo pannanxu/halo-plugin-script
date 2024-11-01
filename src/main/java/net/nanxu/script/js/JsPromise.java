@@ -13,31 +13,36 @@ public interface JsPromise {
     static JsPromise of(Value promise) {
         return new JsPromise() {
             @Override
-            public void then(Consumer<Object> callback) {
+            public JsPromise then(Consumer<Object> callback) {
                 promise.invokeMember("then", callback);
+                return this;
             }
 
             @Override
-            public void catchError(Consumer<Object> callback) {
+            public JsPromise catchError(Consumer<Object> callback) {
                 promise.invokeMember("cache", callback);
+                return this;
             }
 
             @Override
-            public void finallyDo(Consumer<Object> callback) {
+            public JsPromise finallyDo(Consumer<Object> callback) {
                 promise.invokeMember("finally", callback);
+                return this;
             }
         };
     }
 
-    default void then(Consumer<Object> callback) {
+    default JsPromise then(Consumer<Object> callback) {
+        return this;
+    }
+
+    default JsPromise catchError(Consumer<Object> callback) {
+        return this;
 
     }
 
-    default void catchError(Consumer<Object> callback) {
-
-    }
-
-    default void finallyDo(Consumer<Object> callback) {
+    default JsPromise finallyDo(Consumer<Object> callback) {
+        return this;
 
     }
 }
