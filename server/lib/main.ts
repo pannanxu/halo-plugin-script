@@ -1,5 +1,10 @@
 // import {register} from "./apis.ts";
 
+import axios from "axios";
+import {createPublicApiClient} from "@halo-dev/api-client";
+import cloud from '@nanxu/cloud'
+
+
 // export const createImplSearchService = () => {
 //     const impl = new SearchService({
 //         search: (option) => {
@@ -22,3 +27,20 @@ export const fetcherBaidu = async () => {
     console.log(res);
     return res;
 };
+
+const axiosInstance = axios.create({
+    baseURL: "https://www.mvvm.io",
+    withCredentials: true
+})
+
+export const fetchPosts = async () => {
+    await createPublicApiClient(axiosInstance).content.post.queryPosts({}).then(response => {
+        console.log(response);
+        return response;
+    });
+};
+
+export const startCloud =  () => {
+    cloud.start()
+};
+

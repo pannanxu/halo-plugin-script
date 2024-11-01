@@ -344,6 +344,42 @@ class JavaScriptEngineContextTest {
 
         JsPromise.of(fetch).then(System.out::println);
 
+        Thread.sleep(10000);
+    }
+
+    @Test
+    void testHaloApiClientAxios() throws InterruptedException {
+        String port = "4242";
+        String path = java.util.UUID.randomUUID().toString();
+        String hostAdress = "localhost";
+        String url = String.format("chrome-devtools://devtools/bundled/js_app.html?ws=%s:%s/%s",
+            hostAdress, port, path);
+        JavaScriptEngineContext context = new JavaScriptEngineContext(Context.newBuilder("js")
+            .allowIO(IOAccess.newBuilder().fileSystem(new LocalAccessFileSystem()).build())
+            .allowHostAccess(HostAccess.ALL)
+            .allowHostClassLoading(true)
+            .allowHostClassLookup(s -> true)
+            .allowAllAccess(true)
+            .option("js.esm-eval-returns-exports", "true")
+            .option("engine.WarnInterpreterOnly", "false")
+            // .option("js.v8-compat", "true")
+            .option("inspect", port)
+            .option("inspect.Path", path)
+            .build());
+
+        context.addMember("request", new AxiosRequestAdapter());
+        Source source = context.createSourcePath(getFile("halo-api-client-test.js"));
+        // language=JavaScript
+        Value value = context.eval(source);
+        Value fetch = context.invokeMember(value, "fetchPosts");
+
+        JsPromise.of(fetch).then(e -> {
+                System.out.println("结果：" + e);
+            })
+            .catchError(e -> {
+                System.out.println("异常：" + e);
+            });
+
         Thread.sleep(1000);
     }
 
@@ -425,7 +461,7 @@ class JavaScriptEngineContextTest {
         }
     }
 
-    String getFile(String file) {
-        return this.getClass().getClassLoader().getResource(file).getFile();
+    public static String getFile(String file) {
+        return JavaScriptEngineContextTest.class.getClassLoader().getResource(file).getFile();
     }
 }

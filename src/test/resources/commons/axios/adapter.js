@@ -1,4 +1,4 @@
-import axios from "./index.js";
+import axios from "axios";
 
 axios.defaults.adapter = (config) => {
     // TODO 基于Java的api发起请求
@@ -7,6 +7,7 @@ axios.defaults.adapter = (config) => {
         // @ts-ignore
         const resp = request.post(config.url, config.data)
         resolve({
+            url: config.url,
             data: resp.getData(),
             status: resp.getStatus(),
             statusText: resp.getStatusText(),
